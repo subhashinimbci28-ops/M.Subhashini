@@ -1,0 +1,7 @@
+t = int(input())
+for i in range(t):
+    X = int(input())
+    Y = 2 * X * 5           
+    #Output distance traveled for each test case
+    print(Y)                
+    
