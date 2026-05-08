@@ -1,0 +1,8 @@
+t = int(input())        
+
+
+# run a for loop for each test case
+# then for each test case input an integer and output it's negative
+for i in range(t):      
+    n = int(input())    
+    print(-n)
