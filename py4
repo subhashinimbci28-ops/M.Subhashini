@@ -1,0 +1,6 @@
+t = int(input())
+for i in range(t):
+    X, Y, Z = map(int,input().split
+    total_population = X - Y
+    total_population = total_population + Z
+    print(total_population)
