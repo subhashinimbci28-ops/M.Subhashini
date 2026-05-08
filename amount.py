@@ -1,0 +1,6 @@
+a=int(input("a="))
+b=int(input("b="))
+c=int(input("c="))
+d=int(input("d="))
+total=(a*5)+(b*2)+(c*1)+(d*10)
+print("total amount:",total)
