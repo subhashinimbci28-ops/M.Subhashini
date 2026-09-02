@@ -1,0 +1,141 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+// Simple hash node for string keys and integer counts
+typedef struct Node {
+    char *key;
+    int count;
+    struct Node *next;
+} Node;
+
+typedef struct {
+    int size;
+    Node **table;
+} HashMap;
+
+HashMap* createMap(int size) {
+    HashMap *map = (HashMap*)malloc(sizeof(HashMap));
+    map->size = size;
+    map->table = (Node**)calloc(size, sizeof(Node*));
+    return map;
+}
+
+unsigned int hash(const char *str, int size) {
+    unsigned int h = 0;
+    while (*str) {
+        h = (h * 31) + *str++;
+    }
+    return h % size;
+}
+
+void insertMap(HashMap *map, const char *key) {
+    unsigned int idx = hash(key, map->size);
+    Node *curr = map->table[idx];
+    while (curr) {
+        if (strcmp(curr->key, key) == 0) {
+            curr->count++;
+            return;
+        }
+        curr = curr->next;
+    }
+    Node *newNode = (Node*)malloc(sizeof(Node));
+    newNode->key = strdup(key);
+    newNode->count = 1;
+    newNode->next = map->table[idx];
+    map->table[idx] = newNode;
+}
+
+int getCount(HashMap *map, const char *key) {
+    unsigned int idx = hash(key, map->size);
+    Node *curr = map->table[idx];
+    while (curr) {
+        if (strcmp(curr->key, key) == 0) {
+            return curr->count;
+        }
+        curr = curr->next;
+    }
+    return 0;
+}
+
+void freeMap(HashMap *map) {
+    for (int i = 0; i < map->size; i++) {
+        Node *curr = map->table[i];
+        while (curr) {
+            Node *temp = curr;
+            curr = curr->next;
+            free(temp->key);
+            free(temp);
+        }
+    }
+    free(map->table);
+    free(map);
+}
+
+int* findSubstring(char *s, char **words, int wordsSize, int *returnSize) {
+    *returnSize = 0;
+    if (!s || wordsSize == 0) return NULL;
+
+    int wordLen = strlen(words[0]);
+    int totalLen = wordLen * wordsSize;
+    int sLen = strlen(s);
+
+    if (sLen < totalLen) return NULL;
+
+    int *res = (int*)malloc(sizeof(int) * (sLen + 1));
+    HashMap *targetMap = createMap(1000);
+    for (int i = 0; i < wordsSize; i++) {
+        insertMap(targetMap, words[i]);
+    }
+
+    char *buf = (char*)malloc(wordLen + 1);
+
+    for (int i = 0; i < wordLen; i++) {
+        int left = i, right = i, count = 0;
+        HashMap *windowMap = createMap(1000);
+
+        while (right + wordLen <= sLen) {
+            strncpy(buf, s + right, wordLen);
+            buf[wordLen] = '\0';
+            right += wordLen;
+
+            if (getCount(targetMap, buf) > 0) {
+                insertMap(windowMap, buf);
+                count++;
+
+                while (getCount(windowMap, buf) > getCount(targetMap, buf)) {
+                    char leftBuf[32];
+                    strncpy(leftBuf, s + left, wordLen);
+                    leftBuf[wordLen] = '\0';
+                    // Decrement count in windowMap
+                    unsigned int idx = hash(leftBuf, windowMap->size);
+                    Node *curr = windowMap->table[idx];
+                    while (curr) {
+                        if (strcmp(curr->key, leftBuf) == 0) {
+                            curr->count--;
+                            break;
+                        }
+                        curr = curr->next;
+                    }
+                    left += wordLen;
+                    count--;
+                }
+
+                if (count == wordsSize) {
+                    res[(*returnSize)++] = left;
+                }
+            } else {
+                freeMap(windowMap);
+                windowMap = createMap(1000);
+                count = 0;
+                left = right;
+            }
+        }
+        freeMap(windowMap);
+    }
+
+    free(buf);
+    freeMap(targetMap);
+    return res;
+}
