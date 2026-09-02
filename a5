@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* countAndSay(int n) {
+    // Base case: for n = 1, the result is "1"
+    if (n == 1) {
+        char* base = (char*)malloc(2 * sizeof(char));
+        strcpy(base, "1");
+        return base;
+    }
+
+    // Allocate memory for the current string and next string
+    // A size of 100000 bytes is more than enough for n <= 30
+    int max_len = 100000; 
+    char* current = (char*)malloc(max_len * sizeof(char));
+    char* next = (char*)malloc(max_len * sizeof(char));
+
+    // Initialize with the base case string
+    strcpy(current, "1");
+
+    // Iteratively build up to the nth sequence
+    for (int i = 2; i <= n; i++) {
+        int len = strlen(current);
+        int next_idx = 0;
+        int j = 0;
+
+        while (j < len) {
+            char digit = current[j];
+            int count = 0;
+
+            // Count consecutive identical characters
+            while (j < len && current[j] == digit) {
+                count++;
+                j++;
+            }
+
+            // Convert count to character and append to the next string
+            // single digits fit directly, count never exceeds 3 for base characters in RLE sequence
+            next[next_idx++] = count + '0'; 
+            next[next_idx++] = digit;
+        }
+        
+        // Null-terminate the new string
+        next[next_idx] = '\0';
+
+        // Copy new string into current string for the next iteration
+        strcpy(current, next);
+    }
+
+    // Free the temporary buffer and return the result string
+    free(next);
+    return current;
+}
