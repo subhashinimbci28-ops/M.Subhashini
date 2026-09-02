@@ -1,0 +1,54 @@
+#include <stdlib.h>
+#include <string.h>
+
+void backtrack(int* candidates, int candidatesSize, int target, int start, 
+               int* currentCombo, int currentSize, 
+               int*** results, int* resultCount, int** columnSizes, int* capacity) {
+    // Base Case: If target is met, store the combination
+    if (target == 0) {
+        if (*resultCount >= *capacity) {
+            *capacity *= 2;
+            *results = realloc(*results, sizeof(int*) * (*capacity));
+            *columnSizes = realloc(*columnSizes, sizeof(int) * (*capacity));
+        }
+        
+        (*results)[*resultCount] = (int*)malloc(sizeof(int) * currentSize);
+        memcpy((*results)[*resultCount], currentCombo, sizeof(int) * currentSize);
+        (*columnSizes)[*resultCount] = currentSize;
+        (*resultCount)++;
+        return;
+    }
+    
+    // Explore further candidates
+    for (int i = start; i < candidatesSize; i++) {
+        // Optimization: Skip if the candidate exceeds the remaining target
+        if (candidates[i] <= target) {
+            currentCombo[currentSize] = candidates[i];
+            // 'i' stays the same because we can reuse the same element
+            backtrack(candidates, candidatesSize, target - candidates[i], i, 
+                      currentCombo, currentSize + 1, 
+                      results, resultCount, columnSizes, capacity);
+        }
+    }
+}
+
+/**
+ * Return an array of arrays of size *returnSize.
+ * The sizes of the arrays are returned as *returnColumnSizes array.
+ * Note: Both the returned array and *columnSizes array must be malloced, assume caller calls free().
+ */
+int** combinationSum(int* candidates, int candidatesSize, int target, int* returnSize, int** returnColumnSizes) {
+    int capacity = 150; // The problem specifies < 150 unique combinations
+    int** results = (int**)malloc(sizeof(int*) * capacity);
+    *returnColumnSizes = (int*)malloc(sizeof(int) * capacity);
+    *returnSize = 0;
+    
+    // Temporary array to hold the current combination (max depth is target / min_candidate)
+    // Since candidates[i] >= 2 and target <= 40, max depth is 40 / 2 = 20
+    int* currentCombo = (int*)malloc(sizeof(int) * (target + 1));
+    
+    backtrack(candidates, candidatesSize, target, 0, currentCombo, 0, &results, returnSize, returnColumnSizes, &capacity);
+    
+    free(currentCombo);
+    return results;
+}
