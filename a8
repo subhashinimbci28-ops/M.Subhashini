@@ -1,0 +1,41 @@
+#include <limits.h>
+
+int divide(int dividend, int divisor) {
+    // Handle the special overflow case: INT_MIN / -1 = INT_MAX + 1 (overflow)
+    if (dividend == INT_MIN && divisor == -1) {
+        return INT_MAX;
+    }
+    if (dividend == INT_MIN && divisor == 1) {
+        return INT_MIN;
+    }
+
+    // Determine the sign of the result
+    int sign = ((dividend < 0) ^ (divisor < 0)) ? -1 : 1;
+
+    // Convert both to negative numbers to prevent overflow when turning INT_MIN positive
+    long long dvd = dividend;
+    long long dvs = divisor;
+    dvd = dvd < 0 ? -dvd : dvd;
+    dvs = dvs < 0 ? -dvs : dvs;
+
+    long long quotient = 0;
+
+    // Subtract shifted divisor multiples
+    while (dvd >= dvs) {
+        long long temp = dvs, multiple = 1;
+        while (dvd >= (temp << 1)) {
+            temp <<= 1;
+            multiple <<= 1;
+        }
+        dvd -= temp;
+        quotient += multiple;
+    }
+
+    quotient = sign == -1 ? -quotient : quotient;
+
+    // Enforce 32-bit signed integer boundaries
+    if (quotient > INT_MAX) return INT_MAX;
+    if (quotient < INT_MIN) return INT_MIN;
+
+    return (int)quotient;
+}
