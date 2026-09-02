@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* multiply(char* num1, char* num2) {
+    // Edge case: if either number is "0", the product is "0"
+    if (strcmp(num1, "0") == 0 || strcmp(num2, "0") == 0) {
+        char* zero = (char*)malloc(2 * sizeof(char));
+        strcpy(zero, "0");
+        return zero;
+    }
+
+    int len1 = strlen(num1);
+    int len2 = strlen(num2);
+    int maxLen = len1 + len2;
+
+    // Allocate an array to store intermediate digit results and clear it to 0
+    int* pos = (int*)calloc(maxLen, sizeof(int));
+
+    // Multiply each digit from right to left
+    for (int i = len1 - 1; i >= 0; i--) {
+        for (int j = len2 - 1; j >= 0; j--) {
+            int mul = (num1[i] - '0') * (num2[j] - '0');
+            int p1 = i + j;     // High/Carry index position
+            int p2 = i + j + 1; // Low index position
+
+            int sum = mul + pos[p2];
+
+            pos[p2] = sum % 10;
+            pos[p1] += sum / 10;
+        }
+    }
+
+    // Allocate space for the final result string (+1 for null terminator)
+    char* result = (char*)malloc((maxLen + 1) * sizeof(char));
+    int ri = 0;
+    int start = 0;
+
+    // Skip any leading zeros if they exist in the first position
+    while (start < maxLen && pos[start] == 0) {
+        start++;
+    }
+
+    // Copy characters into the result string
+    while (start < maxLen) {
+        result[ri++] = pos[start++] + '0';
+    }
+    result[ri] = '\0'; // Null-terminate string
+
+    // Free the dynamically allocated helper array
+    free(pos);
+
+    return result;
+}
